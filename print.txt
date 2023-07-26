@@ -1,0 +1,14 @@
+Vegas Club
+------------
+            Point Station2
+Customer name: Tech Vegas
+Customer number: 1
+
+			Current Point:	3513
+			Daily Point: 	0
+			Weekly Point: 	2
+			Monthly Point: 	1407
+			Frame Point: 	...
+
+				    Thank you
+Time pinted: 7/18/2022, 12:04:37 PM
