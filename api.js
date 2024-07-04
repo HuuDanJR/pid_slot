@@ -197,7 +197,7 @@ const loadPreset = router.route('/loadPreset').post(async (req, res, next) => {
     ]
     try {
         sendRequestToServer(requestData);
-        res.json(`load preset ${presetId} successfully `,)
+        res.json(`load preset ${presetId} successfully `,);
     } catch (error) {
         next(error);
     }
