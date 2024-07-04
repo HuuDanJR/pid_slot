@@ -1,12 +1,12 @@
 const express = require('express');
-var body_parser = require('body-parser')
+const body_parser = require('body-parser')
 const dgram = require('dgram');
 const os = require('os');
 const networkInterfaces = os.networkInterfaces();
 var app = express();
 var router = express.Router();
-var cors = require('cors')
-
+var cors = require('cors');
+const dboperation =  require('./dboperation');
 
 
 let ipAddress;
@@ -84,9 +84,6 @@ function sendRequestToServer(request, callback) {
 
 
 
-
-
-
 // Function to set up the socket connection
 function setupSocket() {
     // Start the client
@@ -103,30 +100,19 @@ function closeSocket() {
 }
 
 
-
-
- // Timeout event handler
-  let timeoutHandler = null;
+// Timeout event handler
+let timeoutHandler = null;
     // // Timeout event handler
     // const timeoutHandler = setTimeout(() => {
     //     console.log('Server is unreachable.');
     //     client.close();
     // }, TIMEOUT);
-
- // Event handler for when the socket is closed
+// Event handler for when the socket is closed
   client.on('close', () => {
     clearTimeout(timeoutHandler); // Clear the timeout handler
     console.log('Socket closed. Reconnecting...');
     setTimeout(setupSocket, TIMEOUT); // Attempt to reconnect after the specified timeout
   });
-
-
-    // // Event handler for when the socket is closed
-    // client.on('close', () => {
-    //     clearTimeout(timeoutHandler); // Clear the timeout handler
-    //     console.log('Socket closed. Reconnecting...');
-    //     setupSocket(); // Attempt to reconnect
-    // });
 // Event handler for incoming messages
 client.on('message', (message, remote) => {
     const jsonResponse = jsonStringToObject(message.toString('utf8'));
@@ -137,11 +123,6 @@ client.on('message', (message, remote) => {
     }
 });
 }
-
-
-
-
-
 
 app.use(express.json());
 app.use(function (req, res, next) {
@@ -183,6 +164,7 @@ router.route('/enum').get(async (req, res, next) => {
         next(error);
     }
 });
+
 //load preset by preset ID
 const loadPreset = router.route('/loadPreset').post(async (req, res, next) => {
     checkServerConnectivity();
@@ -202,6 +184,13 @@ const loadPreset = router.route('/loadPreset').post(async (req, res, next) => {
         next(error);
     }
 });
+
+
+//machine online status
+router.route('/machine_online_status').post((request, response) => {
+    const { date } = request.body;
+    dboperation.getMachineOnlineStatus(date).then(result => { response.json(result) })
+})
 
 
 setupSocket();
