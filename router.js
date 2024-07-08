@@ -56,4 +56,4 @@ router.route('/machine_online_status').post((request, response) => {
     dboperation.getMachineOnlineStatus(date).then(result => { response.json(result) });
 });
 
-module.exports = router;
+module.exports = router; 
