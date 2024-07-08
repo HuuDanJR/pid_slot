@@ -5,7 +5,7 @@ const { sendRequestToServer, checkServerConnectivity } = require('./socket');
 
 // Middleware to log requests
 router.use((request, response, next) => {
-    console.log('middleware!');
+    console.log('middleware! router');
     next();
 });
 
