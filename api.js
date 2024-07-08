@@ -7,6 +7,9 @@ var app = express();
 var router = express.Router();
 var cors = require('cors');
 const dboperation =  require('./dboperation');
+const http = require('http').createServer(app);  // Use the same http instance for express and socket.io
+const io = require('socket.io')(http);
+
 
 
 let ipAddress;
@@ -90,7 +93,6 @@ function setupSocket() {
     client.bind(CLIENT_PORT, CLIENT_IP, () => {
         console.log(`Client listening on ${CLIENT_IP}:${CLIENT_PORT}`);
         checkServerConnectivity();
-        // sendRequestToServer(inputData);
         loadPreset;
     });
 // Function to close the socket
@@ -102,18 +104,11 @@ function closeSocket() {
 
 // Timeout event handler
 let timeoutHandler = null;
-    // // Timeout event handler
-    // const timeoutHandler = setTimeout(() => {
-    //     console.log('Server is unreachable.');
-    //     client.close();
-    // }, TIMEOUT);
-// Event handler for when the socket is closed
-  client.on('close', () => {
+client.on('close', () => {
     clearTimeout(timeoutHandler); // Clear the timeout handler
     console.log('Socket closed. Reconnecting...');
     setTimeout(setupSocket, TIMEOUT); // Attempt to reconnect after the specified timeout
   });
-// Event handler for incoming messages
 client.on('message', (message, remote) => {
     const jsonResponse = jsonStringToObject(message.toString('utf8'));
     console.log('Received response:', jsonResponse);
@@ -146,6 +141,16 @@ router.use((err, req, res, next) => {
 app.listen(3000, ipAddress, () => {
     console.log(`Server listening on ${ipAddress}:3000`);
 });
+
+
+
+//Socket here
+const socketHandler = require('./socket/socket_handler');
+socketHandler.handleSocketIO(io);
+
+
+
+
 // Define the GET endpoint
 router.route('/').get(async (req, res, next) => {
     try {
@@ -184,7 +189,6 @@ const loadPreset = router.route('/loadPreset').post(async (req, res, next) => {
         next(error);
     }
 });
-
 
 //machine online status
 router.route('/machine_online_status').post((request, response) => {
