@@ -9,7 +9,6 @@ const networkInterfaces = os.networkInterfaces();
 const express = require('express');
 const app = express();
 const server = http.createServer(app);
-
 const socketIo = require('socket.io');
 
 
@@ -57,40 +56,6 @@ app.listen(3000, ipAddress, () => {
 
 
 setupSocket();
+// Require the cron job file to start the cron job
+require('./cronjob_v1.js');
 
-
-
-
-
-
-
-
-
-
-
-// const app2 = express();
-// const server2 = http.createServer(app2);
-// app2.use(express.json());
-// app2.use(body_parser.urlencoded({ extended: true }));
-// app2.use(body_parser.json());
-// app2.use(cors());
-// //APP 2
-// app2.use(function (req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
-// app2.use((err, req, res, next) => {
-//     console.error('Error:', err.message);
-//     res.status(500).json({ error: 'Internal Server Error' });
-// });
-// const PORT2 = process.env.PORT || 3001;
-// app2.listen(PORT2);
-// console.log('Server 2 listening on ' + PORT2);
-// const socketIo2 = socketIo(server2, {
-//     cors: {
-//         origin: "*",
-//         methods: ["GET", "POST"]
-//     }
-// });
-// socketHandler.handleSocketIO(socketIo2);

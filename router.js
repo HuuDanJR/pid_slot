@@ -24,6 +24,9 @@ router.route('/enum').get(async (req, res, next) => {
             "baccarat": '100',
             "roulette": '101',
             "ads": '102'
+            // "baccarat": '8',
+            // "roulette": '7',
+            // "ads": '5'
         });
     } catch (error) {
         next(error);

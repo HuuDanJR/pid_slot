@@ -1,6 +1,7 @@
 var config = require('./config/dbconfig')
 const DBNAME = '[neoncmsprod]';
 const sql = require('mssql');
+const { sendRequestToServer, checkServerConnectivity } = require('./socket');
 
 
 
@@ -21,6 +22,27 @@ async function getMachineOnlineStatus(date) {
 }
 
 
+// Load preset by preset ID function
+async function loadPreset(presetId) {
+    checkServerConnectivity();
+    const requestData = [
+        {
+            "cmd": "W0605",
+            "deviceId": 0,
+            "screenId": 0,
+            "presetId": presetId
+        }
+    ];
+    try {
+        await sendRequestToServer(requestData);
+        return `Load preset ${presetId} successfully`;
+    } catch (error) {
+        throw new Error(`Error loading preset ${presetId}: ${error.message}`);
+    }
+}
+
+
 module.exports = {
     getMachineOnlineStatus: getMachineOnlineStatus,
+    loadPreset:loadPreset
 }
