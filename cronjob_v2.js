@@ -1,3 +1,6 @@
+//CRONJOB 
+
+
 const cron = require('node-cron');
 const dboperation = require('./dboperation');  // Adjust the path as needed
 const fs = require('fs');
@@ -8,8 +11,9 @@ let countTotal = 0;  // Counter for runs with data.length > 0
 let countjobScreen = 0;
 let countjobAds = 0;
 let currentCronJob = null;  // Store the current cron job
-const screenID = 7;
-const adsID = 5;
+
+const screenID = 7; //OFF 
+const adsID = 5; //SHOW ADS 
 
 function logToFile(message) {
     const now = new Date();
@@ -42,15 +46,15 @@ function myJobAds() {
 // Function to get the schedule interval based on data length
 function getScheduleInterval(dataLength) {
     if (dataLength === 0 || dataLength === 1) {
-        return '*/5 * * * * *';  // Every 5 seconds
-    } else if (dataLength === 2 || dataLength === 3) {
-        return '*/7.5 * * * * *';  // Every 7.5 seconds
+        return '*/4 * * * * *';  // Every 7 seconds
+    } else if (dataLength === 4 || dataLength === 3) {
+        return '*/4 * * * * *';  // Every 10 seconds
     } else if (dataLength >= 4 && dataLength <= 5) {
-        return '*/10 * * * * *';  // Every 10 seconds
+        return '*/4 * * * * *';  // Every 10 seconds
     } else if (dataLength > 5 && dataLength <= 10) {
-        return '*/15 * * * * *';  // Every 15 seconds
+        return '*/4* * * * *';  // Every 40 secondss
     } else {
-        return '*/5 * * * * *';  // Default to every 5 seconds
+        return '*/4 * * * * *';  // Default to every 5 seconds
     }
 }
 
@@ -84,7 +88,6 @@ async function startCronJob() {
             }
             currentCronJob = cron.schedule(newInterval, startCronJob);
         }
-
         console.log(`machineOnlineStatus: ${dataLength} (${countTotal})`);
     } catch (error) {
         console.log(`Error fetching machine online status: ${error}`);
@@ -105,7 +108,6 @@ async function initialRun() {
         }
         // Set previousDataLength to the current data length after the initial run
         previousDataLength = dataLength;
-
         // Start the cron job with the initial schedule interval
         const initialInterval = getScheduleInterval(dataLength);
         currentCronJob = cron.schedule(initialInterval, startCronJob);
@@ -117,4 +119,20 @@ async function initialRun() {
 // Execute the initial run
 initialRun();
 
-module.exports = cron;
+
+
+
+// Function to stop the cron job
+function stopCronJob() {
+    if (currentCronJob) {
+        currentCronJob.stop();
+        //set screen 
+        // dboperation.loadPreset(screenID);
+        console.log('Cron job stopped.');
+        logToFile('Cron job stopped.');
+    }
+}
+
+module.exports = {
+    cron,stopCronJob
+};

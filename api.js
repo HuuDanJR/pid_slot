@@ -57,5 +57,5 @@ app.listen(3000, ipAddress, () => {
 
 setupSocket();
 // Require the cron job file to start the cron job
-require('./cronjob_v1.js');
+require('./cronjob_v2.js');
 

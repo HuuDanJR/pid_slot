@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const dboperation = require('./dboperation');
 const { sendRequestToServer, checkServerConnectivity } = require('./socket');
+const cron = require('./cronjob_v2')
 
 // Middleware to log requests
 router.use((request, response, next) => {
@@ -21,12 +22,9 @@ router.route('/').get(async (req, res, next) => {
 router.route('/enum').get(async (req, res, next) => {
     try {
         res.json({
-            "baccarat": '100',
-            "roulette": '101',
-            "ads": '102'
-            // "baccarat": '8',
-            // "roulette": '7',
-            // "ads": '5'
+            "baccarat": 8,
+            "roulette": 7,
+            "ads": 5
         });
     } catch (error) {
         next(error);
@@ -57,6 +55,11 @@ router.route('/loadPreset').post(async (req, res, next) => {
 router.route('/machine_online_status').post((request, response) => {
     const { date } = request.body;
     dboperation.getMachineOnlineStatus(date).then(result => { response.json(result) });
+});
+// Machine online status
+router.route('/stop_cron').get((req, res) => {
+    cron.stopCronJob();
+    res.json('Cron job stopped.');
 });
 
 module.exports = router; 

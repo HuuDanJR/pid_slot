@@ -64,7 +64,7 @@ async function initialRun() {
 initialRun();
 
 // Cron job to fetch machine online status every 5 seconds
-cron.schedule('*/7 * * * * *', async () => {
+cron.schedule('*/10 * * * * *', async () => {
     const currentDate = new Date().toISOString().split('T')[0];  // Example: '2021-09-20'
     try {
         const data = await dboperation.getMachineOnlineStatus(currentDate);
@@ -77,7 +77,6 @@ cron.schedule('*/7 * * * * *', async () => {
             if (dataLength === 0 && previousDataLength !== 0) {
                 myJobAds();
             }
-
             // Run myJob2() if data length changes to > 0 and it's the first time or a change from 0
             if (dataLength > 0 && (previousDataLength === null || previousDataLength === 0)) {
                 myJobScreen();
@@ -88,8 +87,11 @@ cron.schedule('*/7 * * * * *', async () => {
         }
         console.log(`machineOnlineStatus: ${dataLength} (${countTotal})`);
     } catch (error) {
-        console.log(`Error fetching machine online status: ${error}`);
+        console.log(`error fetching machine online status: ${error}`);
     }
 });
+
+
+
 
 module.exports = cron;
