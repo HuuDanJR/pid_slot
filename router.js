@@ -62,4 +62,10 @@ router.route('/stop_cron').get((req, res) => {
     res.json('Cron job stopped.');
 });
 
+// Machine online status
+router.route('/restart_cron').get((req, res) => {
+    cron.reStartCronJob();
+    res.json('Cron job re-started.');
+});
+
 module.exports = router; 

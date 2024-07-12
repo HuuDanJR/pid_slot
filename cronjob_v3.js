@@ -1,12 +1,8 @@
-//CRONJOB 
-
-
 const cron = require('node-cron');
 const dboperation = require('./dboperation');  // Adjust the path as needed
 const fs = require('fs');
 const { format } = require('date-fns');
 // const { broadcast } = require('./websocket_server');
-
 
 let previousDataLength = null;  // Store the previous data length to detect changes
 let countTotal = 0;  // Counter for runs with data.length > 0
@@ -51,45 +47,43 @@ function myJobAds() {
 
 // Function to get the schedule interval based on data length
 function getScheduleInterval(dataLength) {
-    if (dataLength === 0 || dataLength === 1 || dataLength == 2 || dataLength ==3) {
-        return '*/3 * * * * *';  // Every 3 seconds
-    } else if (dataLength >= 4 && dataLength <= 7) {
-        return '*/7 * * * * *';  // Every 10 seconds
-    } else if (dataLength > 7 && dataLength <= 10) {
-        return '*/15* * * * *';  // Every 40 secondss
+    if (dataLength === 0 || dataLength === 1) {
+        return '*/4 * * * * *';  // Every 4 seconds
+    } else if (dataLength === 4 || dataLength === 3) {
+        return '*/10 * * * * *';  // Every 10 seconds
+    } else if (dataLength >= 4 && dataLength <= 5) {
+        return '*/10 * * * * *';  // Every 10 seconds
+    } else if (dataLength > 5 && dataLength <= 10) {
+        return '*/40 * * * * *';  // Every 40 seconds
     } else {
-        return '*/3 * * * * *';  // Default to every 3 seconds
+        return '*/5 * * * * *';  // Default to every 5 seconds
     }
 }
 
-// Function to start the cron job
-async function startCronJob() {
+// Function to process batch requests
+async function processBatchRequests() {
     const currentDate = new Date().toISOString().split('T')[0];
+    const dataPromises = batchRequests.map(() => dboperation.getMachineOnlineStatus(currentDate));
+    
     try {
-        const data = await dboperation.getMachineOnlineStatus(currentDate);
-        const dataLength = data.length;
+        const results = await Promise.all(dataPromises);
+        const dataLengths = results.map(data => data.length);
+        const dataLength = dataLengths.reduce((acc, length) => acc + length, 0);
+
         countTotal++;
 
-        // Check if there's a change in data length
         if (previousDataLength !== dataLength) {
-            // Run myJobAds() if data length changes to 0 and it's the first time or a change from > 0
             if (dataLength === 0 && previousDataLength !== 0) {
                 myJobAds();
             }
 
-            // Run myJobScreen() if data length changes to > 0 and it's the first time or a change from 0
             if (dataLength > 0 && (previousDataLength === null || previousDataLength === 0)) {
                 myJobScreen();
             }
 
-            // Update the previous data length to the current data length
             previousDataLength = dataLength;
-
-            // Broadcast the change to WebSocket clients
-            // broadcast({ event: 'dataLengthChange', dataLength });
-
-            // Stop the current cron job and start a new one with the updated interval
             const newInterval = getScheduleInterval(dataLength);
+
             if (currentCronJob) {
                 currentCronJob.stop();
             }
@@ -99,6 +93,17 @@ async function startCronJob() {
     } catch (error) {
         console.log(`Error fetching machine online status: ${error}`);
     }
+
+    batchRequests = []; // Clear the batch
+}
+
+// Function to start the cron job
+async function startCronJob() {
+    batchRequests.push(true);
+
+    if (batchRequests.length === 1) {
+        setTimeout(processBatchRequests, BATCH_INTERVAL);
+    }
 }
 
 // Function to handle the initial run
@@ -107,15 +112,12 @@ async function initialRun() {
     try {
         const data = await dboperation.getMachineOnlineStatus(currentDate);
         const dataLength = data.length;
-        // Initial run condition check
         if (dataLength === 0) {
             myJobAds();
         } else if (dataLength > 0) {
             myJobScreen();
         }
-        // Set previousDataLength to the current data length after the initial run
         previousDataLength = dataLength;
-        // Start the cron job with the initial schedule interval
         const initialInterval = getScheduleInterval(dataLength);
         currentCronJob = cron.schedule(initialInterval, startCronJob);
     } catch (error) {
@@ -126,28 +128,24 @@ async function initialRun() {
 // Execute the initial run
 initialRun();
 
-
-
-
 // Function to stop the cron job
 function stopCronJob() {
     if (currentCronJob) {
         currentCronJob.stop();
-        //set screen 
         // dboperation.loadPreset(screenID);
         console.log('Cron job stopped.');
         logToFile('Cron job stopped.');
     }
 }
-// Function to stop the cron job
+
+// Function to restart the cron job
 async function reStartCronJob() {
-  // Function to restart the cron job
-  stopCronJob(); // Stop the current cron job if running
-  await initialRun(); // Re-run the initial setup
-  console.log('Cron job restarted.');
-  logToFile('Cron job restarted.');
+    stopCronJob(); // Stop the current cron job if running
+    await initialRun(); // Re-run the initial setup
+    console.log('Cron job restarted.');
+    logToFile('Cron job restarted.');
 }
 
 module.exports = {
-    cron,stopCronJob,reStartCronJob,
+    cron, stopCronJob, reStartCronJob,
 };
